@@ -1,6 +1,7 @@
 package com.demo.SpringBootWebservice.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -30,32 +31,54 @@ public class ProductServiceImpl implements ProductService{
 	
 	//@Override
 	public ProductDTO getById(int pid) {
-			Product p= pdao.getById(pid);
-			if(p!=null) {
+			Optional<Product> ob= pdao.findById(pid);
+			if(ob.isPresent()) {
+				Product p=ob.get();
 			    return ProductDTOMapper.maptoProductDTO(p);
 			 }
 			return null;
 		}
-
+	
 	//@Override
-	/*public void saveProduct(ProductDTO pdto) {
+	public void deleteProduct(int pid) {
+		pdao.deleteById(pid);
+		
+	}
+	
+	//@Override
+	public void saveProduct(ProductDTO pdto) {
 		Product product=ProductDTOMapper.mapToProduct(pdto);
-		pdao.insertProduct(product);
+		pdao.save(product);
 		
 	}
 
 	
 
 	//@Override
-	public void updateProduct(ProductDTO pdto) {
+	public boolean updateProduct(ProductDTO pdto) {
 		Product product=ProductDTOMapper.mapToProduct(pdto);
-		pdao.modifyProduct(product);
+		Optional<Product> ob= pdao.findById(product.getPid());
+		if(ob.isPresent()) {
+			Product p=ob.get();
+			p.setPname(product.getPname());
+			p.setQty(product.getQty());
+			p.setPrice(product.getPrice());
+			p.setMfgdate(product.getMfgdate());
+			pdao.save(p);
+			return true;
+		}
+		return false;
 		
 	}
 
-	//@Override
-	public void deleteProduct(int pid) {
-		pdao.removeById(pid);
-		
-	}*/
+	@Override
+	public List<ProductDTO> getByPrice(float lowprice, float highprice) {
+		List<Product> plist=pdao.findByPrice(lowprice, highprice);
+		List<ProductDTO> newplist=plist.stream()
+		        .map(prod->ProductDTOMapper.maptoProductDTO(prod))
+		        .collect(Collectors.toList());
+		return newplist;
+	}
+
+	
 }
